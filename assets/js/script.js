@@ -9,18 +9,14 @@ var createTask = function(taskText, taskDate, taskList) {
   var taskP = $("<p>")
     .addClass("m-1")
     .text(taskText);
-
   // append span and p element to parent li
   taskLi.append(taskSpan, taskP);
-
-
   // append to ul list on the page
   $("#list-" + taskList).append(taskLi);
 };
 
 var loadTasks = function() {
   tasks = JSON.parse(localStorage.getItem("tasks"));
-
   // if nothing in localStorage, create a new object to track all task status arrays
   if (!tasks) {
     tasks = {
@@ -30,7 +26,6 @@ var loadTasks = function() {
       done: []
     };
   }
-
   // loop over object properties
   $.each(tasks, function(list, arr) {
     console.log(list, arr);
@@ -45,7 +40,67 @@ var saveTasks = function() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
+//UPDATE TASKS FUNCS
+$(".list-group").on("click", "p", function() {
+  var text = $(this)
+    .text()
+    .trim();
+  var textInput = $("<textarea>")
+  .addClass("form-control")
+  .val(text);
+  $(this).replaceWith(textInput);
+  textInput.trigger("focus");
+});
+$(".list-group").on("blur", "textarea", function() {
+  var text = $(this)
+  .val()
+  .trim();
+  var status = $(this)
+  .closest(".list-group")
+  .attr("id").replace("list-", "");
+  var index = $(this)
+  .closest(".list-group-item")
+  .index();
+  tasks[status][index].text = text;
+  saveTasks();
 
+    var taskP = $("<p>")
+      .addClass("m-1")
+      .text(text);  
+    $(this).replaceWith(taskP);
+});
+
+//EDITING DUE DATE
+$(".list-group").on("click", "span", function() {
+  var date = $(this)
+    .text()
+    .trim();
+  //CREATE NEW INPUT ELEMENT
+  var dateInput = $("<input>")
+    .attr("type", "text")
+    .addClass("form-control")
+    .val(date);
+  $(this).replaceWith(dateInput);
+  dateInput.trigger("focus")
+});
+$(".list-group").on("blur", "input[type='text']", function() {
+  var date = $(this)
+    .val()
+    .trim();
+  var status = $(this)
+    .closest(".list-group")
+    .attr("id")
+    .replace("list-", "");
+  var index = $(this)
+    .closest(".list-group-item")
+    .index();
+  tasks[status][index].date = date;
+  saveTasks();
+  var taskSpan = $("<span>")
+    .addClass("badge badge-primary badge-pill")
+    .text(date);
+  $(this).replaceWith(taskSpan);
+});
 
 
 // modal was triggered
@@ -65,19 +120,15 @@ $("#task-form-modal .btn-primary").click(function() {
   // get form values
   var taskText = $("#modalTaskDescription").val();
   var taskDate = $("#modalDueDate").val();
-
   if (taskText && taskDate) {
     createTask(taskText, taskDate, "toDo");
-
     // close modal
     $("#task-form-modal").modal("hide");
-
     // save in tasks array
     tasks.toDo.push({
       text: taskText,
       date: taskDate
-    });
-
+    }); 
     saveTasks();
   }
 });
